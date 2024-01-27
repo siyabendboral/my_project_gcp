@@ -9,12 +9,6 @@ resource "google_compute_autoscaler" "default" {
     max_replicas    = 5
     min_replicas    = 1
     cooldown_period = 60
-
-    metric {
-      name                       = "pubsub.googleapis.com/subscription/num_undelivered_messages"
-      filter                     = "resource.type = pubsub_subscription AND resource.label.subscription_id = our-subscription"
-      single_instance_assignment = 65535
-    }
   }
 }
 
@@ -38,7 +32,9 @@ resource "google_compute_instance_template" "default" {
   metadata = {
     foo = "bar"
   }
-  
+service_account {
+    scopes = ["userinfo-email", "compute-ro", "storage-ro"]
+  }
 }
 
 resource "google_compute_target_pool" "default" {
@@ -60,12 +56,5 @@ resource "google_compute_instance_group_manager" "default" {
 
   target_pools       = [google_compute_target_pool.default.id]
   base_instance_name = "autoscaler-sample"
-}
-
-data "google_compute_image" "debian_9" {
-  provider = google-beta
-
-  family  = "debian-11"
-  project = "debian-cloud"
 }
 
